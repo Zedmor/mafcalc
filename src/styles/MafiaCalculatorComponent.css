@@ -1,0 +1,76 @@
+.player-info-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.player-info-cell {
+  border: 1px solid #ccc;
+  padding: 10px;
+  background-color: #f0f0f0; /* Light gray background for better contrast */
+  color: #333; /* Dark text color for readability */
+  font-size: 18px; /* Smaller font size for better fit */
+}
+
+.eliminated-players {
+  margin: 10px 0;
+  font-size: 18px; /* Larger font size for emphasis */
+  color: #fff; /* White text color for contrast */
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.processed-commands {
+  margin-top: 20px;
+  background-color: #333; /* Dark grey background */
+  color: #fff; /* White text color for contrast */
+  padding: 10px;
+  border-radius: 5px;
+  font-size: 12px; /* Smaller font size */
+}
+
+.processed-commands h2 {
+  margin-bottom: 10px;
+  font-size: 16px; /* Slightly larger font for headings */
+  color: #fff; /* White text color for headings */
+}
+
+.output-container {
+  text-align: left;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+textarea {
+  width: 80%;
+  margin: 20px 0;
+  font-size: 14px; /* Consistent font size with output */
+  color: #333; /* Dark text color for readability */
+  background-color: #f9f9f9; /* Light background for contrast */
+  border: 1px solid #ccc;
+  padding: 10px;
+}
+
+.App-header h1 {
+  font-size: 30px; /* Smaller font size for the main header */
+  color: #ffffff; /* Dark text color for readability */
+}
+
+
+.graph-details {
+  margin-top: 20px;
+  background-color: #333; /* Dark grey background */
+  color: #fff; /* White text color for contrast */
+  padding: 10px;
+  border-radius: 5px;
+  font-size: 16px; /* Match font size with processed commands */
+}
+
+.graph-details h2 {
+  margin-bottom: 10px;
+  font-size: 14px; /* Slightly larger font for headings */
+  color: #fff; /* White text color for headings */
+}

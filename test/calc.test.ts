@@ -22,14 +22,14 @@ describe('MafiaCalculator', () => {
     });
 
     test('applyEventSuspicion', () => {
-      calculator.applyEvent(1, "s", 7);
+        calculator.applyEvent(1, "s", 7);
 
-      // Create an instance of the Suspicion class to access its properties
-      const suspicionInstance = new Suspicion();
-      const expectedWeight = (1 - suspicionInstance.breakingWeight);
+        // Create an instance of the Suspicion class to access its properties
+        const suspicionInstance = new Suspicion(1, 7);
+        const expectedWeight = (1 - suspicionInstance.getBreakingWeight());
 
-      expect(calculator.getEdgeWeight(calculator.blackTogetherGraph, 1, 7)).toBeCloseTo(expectedWeight);
-      expect(calculator.getEdgeWeight(calculator.relationshipsGraph, 1, 7)).toBeCloseTo(6 / 9 * (1 - suspicionInstance.strength));
+        expect(calculator.getEdgeWeight(calculator.blackTogetherGraph, 1, 7)).toBeCloseTo(expectedWeight);
+        expect(calculator.getEdgeWeight(calculator.relationshipsGraph, 1, 7)).toBeCloseTo(6 / 9 * (1 - suspicionInstance.getStrength()));
     });
 
 
@@ -72,6 +72,11 @@ describe('MafiaCalculator', () => {
         expect(redness).toBeGreaterThanOrEqual(0.0);
         expect(redness).toBeLessThan(1.0);
     });
+
+    test('parseEventVotingSpaces', () => {
+        const event = calculator.parseEvent("1: 2,3,4,6, 7");
+        expect(event).toEqual([1, "V", [2, 3, 4, 6, 7]]);
+    })
 
     test('calculateVoting', () => {
         const event = calculator.parseEvent("1: 2,3,4,6, 7");
@@ -223,4 +228,22 @@ describe('MafiaCalculator', () => {
             expect(triplet).toContain(2);
         });
     });
+
+    test('votingDoNotAffectBlackTogether', () => {
+        calculator.processSingleEvent("9e");
+        calculator.processSingleEvent("2: 1,3,5");
+        calculator.processSingleEvent("3: 2,8");
+        calculator.processSingleEvent("5: 4,6,7,10");
+
+        const source = 1;
+        const target = 5;
+
+        const blackTogetherEdge = calculator.blackTogetherGraph.edges.find(edge =>
+            (edge.source === source && edge.target === target) ||
+            (edge.source === target && edge.target === source)
+        )
+
+        expect(blackTogetherEdge).toBeDefined();
+
+    })
 });
