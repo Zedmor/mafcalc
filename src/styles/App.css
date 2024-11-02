@@ -1,14 +1,60 @@
+/* styles/App.css */
+
+/* Reset default margin and padding */
+body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Navigation Bar Styles */
+.navbar {
+  background-color: #333;
+  overflow: hidden;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
+}
+
+.nav-links {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+}
+
+.nav-links li {
+  display: inline;
+  padding: 14px 20px;
+}
+
+.nav-links a {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.nav-links a:hover {
+  background-color: #575757;
+  border-radius: 4px;
+}
+
+/* Main App Styles */
 .App {
   text-align: center;
+  padding-top: 0px; /* Add padding to account for the fixed navbar */
 }
 
 .App-header {
+  padding-top: 60px;
   background-color: #282c34;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start; /* Align items to the top */
   font-size: calc(10px + 2vmin);
   color: white;
 }
@@ -16,10 +62,94 @@
 textarea {
   width: 80%;
   margin: 20px 0;
+  resize: vertical; /* Allow vertical resizing */
 }
 
-pre {
+.eliminated-players {
+  margin-bottom: 20px; /* Add margin to separate from other elements */
+}
+
+.output-container {
+  width: 80%;
+  margin: 20px 0;
+  text-align: left; /* Align text to the left */
+}
+
+.processed-commands {
+  margin-top: 20px;
+}
+
+.player-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+  width: 80%;
+  margin: 20px 0;
+}
+
+.player-info-cell {
+  background-color: #444;
+  padding: 10px;
+  border-radius: 5px;
   text-align: left;
-  white-space: pre-wrap;
-  word-wrap: break-word;
+}
+
+/* Markdown Page Styles */
+.markdown-content {
+  padding: 20px;
+  margin-top: 60px; /* Adjust for fixed navbar */
+  max-width: 1000px; /* Increase width */
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.5; /* Adjust line spacing */
+  font-family: 'Arial', sans-serif;
+  text-align: left; /* Ensure left alignment */
+}
+
+.markdown-content h1, .markdown-content h2, .markdown-content h3 {
+  color: #333;
+}
+
+.markdown-content p {
+  color: #555;
+}
+
+.markdown-content a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.markdown-content a:hover {
+  text-decoration: underline;
+}
+
+.markdown-content ul, .markdown-content ol {
+  padding-left: 20px;
+}
+
+.markdown-content blockquote {
+  margin: 20px 0;
+  padding: 10px 20px;
+  background-color: #f9f9f9;
+  border-left: 5px solid #ccc;
+}
+
+/* Code Block Styles */
+.markdown-content pre {
+  background-color: #f5f5f5;
+  padding: 10px;
+  border-radius: 5px;
+  overflow-x: auto;
+}
+
+.markdown-content code {
+  background-color: #f5f5f5;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.95em;
+}
+
+.markdown-content pre code {
+  background-color: transparent; /* Remove background from code inside pre */
 }

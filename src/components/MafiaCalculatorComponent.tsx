@@ -130,16 +130,16 @@ const MafiaCalculatorComponent: React.FC = () => {
   return (
     <div className="App">
       <header className="App-header">
+        <textarea
+            value={input}
+            onChange={handleInputChange}
+            placeholder="Enter commands here..."
+            rows={10}
+            cols={50}
+        />
         <div className="eliminated-players">
           <strong>Players Eliminated:</strong> {eliminatedPlayers}
         </div>
-        <textarea
-          value={input}
-          onChange={handleInputChange}
-          placeholder="Enter commands here..."
-          rows={10}
-          cols={50}
-        />
         <div className="output-container">{output}</div>
         {/*{blackTogetherGraph && (*/}
         {/*  <VisxGraphVisualization data={blackTogetherGraph} title="Black Together Graph" />*/}
