@@ -27,12 +27,20 @@ const MafiaCalculatorComponent: React.FC = () => {
   const [eliminatedPlayers, setEliminatedPlayers] = useState<string>('');
   const [blackTogetherGraph, setBlackTogetherGraph] = useState<GraphData | null>(null);
   const [relationshipsGraph, setRelationshipsGraph] = useState<GraphData | null>(null);
+  const [sheriffAdvisorOutput, setSheriffAdvisorOutput] = useState<{ player: number; infoGain: number }[]>([]);
 
   useEffect(() => {
     const calculator = new MafiaCalculator();
-    const events = input.split('\n').filter(event => event.trim() !== '');
+    const events = input.split('\n').filter((event) => event.trim() !== '');
     calculator.processEvents(events);
+
+    // Get the eliminated players
     setEliminatedPlayers(Array.from(calculator.eliminatedPlayers).join(', '));
+
+    // Get the output from sheriffAdvisor
+    const suggestedPlayers = calculator.sheriffAdvisor();
+    setSheriffAdvisorOutput(suggestedPlayers);
+
     setOutput(generateOutput(calculator, events));
 
     // Transform graph data for visualization
@@ -44,30 +52,37 @@ const MafiaCalculatorComponent: React.FC = () => {
     setInput(event.target.value);
   };
 
-  const transformGraphData = (graphData: { nodes: { id: number; x: number; y: number }[]; edges: { source: number; target: number; weight: number }[] }): GraphData => {
+  const transformGraphData = (graphData: {
+    nodes: { id: number; x: number; y: number }[];
+    edges: { source: number; target: number; weight: number }[];
+  }): GraphData => {
     const nodeMap = new Map<number, Node>();
-    graphData.nodes.forEach(node => {
+    graphData.nodes.forEach((node) => {
       nodeMap.set(node.id, node);
     });
-
-    const links = graphData.edges.map(edge => ({
+    const links = graphData.edges.map((edge) => ({
       source: nodeMap.get(edge.source)!,
       target: nodeMap.get(edge.target)!,
     }));
-
     return { nodes: graphData.nodes, links };
   };
 
   const generateOutput = (calculator: MafiaCalculator, events: string[]): JSX.Element => {
     const playerIds = [9, 10, 1, 2, 8, null, null, 3, 7, 6, 5, 4];
-    const playerInfo: (PlayerInfo | null)[] = playerIds.map(id => (id !== null ? calculator.getPlayerInfo(id) : null));
+    const playerInfo: (PlayerInfo | null)[] = playerIds.map((id, index) =>
+      id !== null ? calculator.getPlayerInfo(id) : null
+    );
 
     return (
       <div>
         <div className="player-info-grid">
           {playerInfo.map((info, index) => (
             <div key={index} className="player-info-cell">
-              {info ? formatPlayerInfo(info) : ''}
+              {info
+                ? formatPlayerInfo(info)
+                : index === 5
+                ? formatSheriffAdvisorOutput(sheriffAdvisorOutput)
+                : ''}
             </div>
           ))}
         </div>
@@ -82,28 +97,7 @@ const MafiaCalculatorComponent: React.FC = () => {
             ))}
           </div>
         </div>
-        {/*<div className="graph-details">*/}
-        {/*  <h2>Black Together Graph Edges (Sorted)</h2>*/}
-        {/*  {printGraphEdges(calculator.blackTogetherGraph.edges, false)}*/}
-        {/*  <h2>Relationships Graph Edges (Sorted)</h2>*/}
-        {/*  {printGraphEdges(calculator.relationshipsGraph.edges, true)}*/}
-        {/*</div>*/}
       </div>
-    );
-  };
-
-  const printGraphEdges = (edges: { source: number; target: number; weight: number }[], directed: boolean): JSX.Element => {
-    const sortedEdges = [...edges].sort((a, b) => b.weight - a.weight);
-    return (
-      <ul>
-        {sortedEdges.map((edge, index) => (
-          <li key={index}>
-            {directed
-              ? `(${edge.source} -> ${edge.target}): ${edge.weight}`
-              : `(${edge.source}, ${edge.target}): ${edge.weight}`}
-          </li>
-        ))}
-      </ul>
     );
   };
 
@@ -126,6 +120,21 @@ const MafiaCalculatorComponent: React.FC = () => {
     );
   };
 
+  const formatSheriffAdvisorOutput = (
+    sheriffAdvisorOutput: { player: number; infoGain: number }[]
+  ): JSX.Element => {
+    return (
+      <div>
+        <strong>Sheriff Advisor:</strong>
+        {sheriffAdvisorOutput.map(({ player, infoGain }, index) => (
+          <div key={index}>
+            Player {player}: {infoGain.toFixed(2)} bits
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="mafia-calculator-container">
       <div className="text-entry-column">
@@ -142,12 +151,6 @@ const MafiaCalculatorComponent: React.FC = () => {
           <strong>Players Eliminated:</strong> {eliminatedPlayers}
         </div>
         <div className="output-container">{output}</div>
-        {/*{blackTogetherGraph && (*/}
-        {/*  <VisxGraphVisualization data={blackTogetherGraph} title="Black Together Graph" />*/}
-        {/*)}*/}
-        {/*{relationshipsGraph && (*/}
-        {/*  <VisxGraphVisualization data={relationshipsGraph} title="Relationships Graph" />*/}
-        {/*)}*/}
       </div>
     </div>
   );

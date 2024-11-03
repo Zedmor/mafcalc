@@ -246,4 +246,25 @@ describe('MafiaCalculator', () => {
         expect(blackTogetherEdge).toBeDefined();
 
     })
+
+    test('sheriffAdvisor', () => {
+        calculator.processSingleEvent("3s2");
+        calculator.processSingleEvent("7s2");
+        calculator.processSingleEvent("5s7");
+        calculator.processSingleEvent("8s4");
+        calculator.processSingleEvent("10rc9");
+        calculator.processSingleEvent("3s4");
+        calculator.processSingleEvent("4rc2");
+        calculator.processSingleEvent("3rc2");
+        calculator.processSingleEvent("9e");
+        calculator.processSingleEvent("9s2");
+        calculator.processSingleEvent("9s7");
+        calculator.processSingleEvent("9s10");
+
+        const sheriffAdvise = calculator.sheriffAdvisor();
+
+        console.log(sheriffAdvise);
+
+    })
+
 });

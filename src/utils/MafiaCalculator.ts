@@ -611,4 +611,112 @@ export class MafiaCalculator {
         this.expectingVel = false;
     }
 
+public sheriffAdvisor(): { player: number; infoGain: number }[] {
+    const alivePlayers = this.players.filter(
+      (player) => !this.eliminatedPlayers.has(player)
+    );
+
+    // Exclude known sheriffs
+    const knownSheriffs = Array.from(this.sheriffs).filter((sheriff) =>
+      alivePlayers.includes(sheriff)
+    );
+    const potentialPlayers = alivePlayers.filter(
+      (player) => !knownSheriffs.includes(player)
+    );
+
+    // Generate possible mafia teams consistent with current info
+    const possibleTeams = this.getPossibleMafiaTeams();
+    const totalPriorProb = possibleTeams.length;
+
+    if (totalPriorProb === 0) {
+      console.log(
+        "No possible mafia teams found with the current information."
+      );
+      return [];
+    }
+
+    // Initial entropy
+    const currentEntropy = this.calculateEntropy(totalPriorProb);
+
+    const expectedGains: { player: number; infoGain: number }[] = [];
+
+    potentialPlayers.forEach((player) => {
+      // Estimate probability that the player is mafia
+      const P_mafia = this.calculatePlayerMafiaProbability(player);
+
+      // Simulate checking the player and getting 'mafia' result
+      const teamsIfMafia = possibleTeams.filter((team) =>
+        team.includes(player)
+      );
+      const entropyIfMafia = this.calculateEntropy(teamsIfMafia.length);
+
+      // Simulate checking the player and getting 'not mafia' result
+      const teamsIfNotMafia = possibleTeams.filter(
+        (team) => !team.includes(player)
+      );
+      const entropyIfNotMafia = this.calculateEntropy(teamsIfNotMafia.length);
+
+      // Expected entropy after checking this player
+      const expectedEntropy =
+        P_mafia * entropyIfMafia + (1 - P_mafia) * entropyIfNotMafia;
+
+      // Information gain is the difference in entropy
+      const informationGain = currentEntropy - expectedEntropy;
+
+      expectedGains.push({ player, infoGain: informationGain });
+    });
+
+    // Sort players by expected information gain (from highest to lowest)
+    expectedGains.sort((a, b) => b.infoGain - a.infoGain);
+
+    // Present the sorted list
+    console.log(
+      "\nSuggested players to check, sorted by expected information gain (in bits):"
+    );
+    expectedGains.forEach(({ player, infoGain }) => {
+      console.log(`Player ${player}: ${infoGain.toFixed(2)} bits`);
+    });
+
+    return expectedGains;
+  }
+
+  private getPossibleMafiaTeams(): number[][] {
+    const possibleTeams: number[][] = [];
+    const alivePlayers = this.players.filter(
+      (player) => !this.eliminatedPlayers.has(player)
+    );
+
+    // Exclude confirmed red players from sheriff red checks
+    const confirmedRedPlayers = new Set<number>();
+    this.redChecks.forEach((redChecks) => {
+      redChecks.forEach((player) => confirmedRedPlayers.add(player));
+    });
+    const potentialMafiaPlayers = alivePlayers.filter(
+      (player) => !confirmedRedPlayers.has(player)
+    );
+
+    // Generate combinations of 3 mafia players from potentialMafiaPlayers
+    const allTriplets = combinations(potentialMafiaPlayers, 3);
+
+    allTriplets.forEach((triplet) => {
+      const [a, b, c] = triplet;
+      if (this.validTriplet(a, b, c)) {
+        possibleTeams.push(triplet);
+      }
+    });
+
+    return possibleTeams;
+  }
+
+  private calculateEntropy(numTeams: number): number {
+    return numTeams > 0 ? Math.log2(numTeams) : 0;
+  }
+
+  private calculatePlayerMafiaProbability(player: number): number {
+    // Use the inverse of the redness score
+    const redness = this.calculateRedness(player);
+    const P_mafia = Math.max(0, Math.min(1, 1 - redness));
+    return P_mafia;
+  }
+
 }
