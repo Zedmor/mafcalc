@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { MafiaCalculator, PlayerInfo } from '../utils/MafiaCalculator';
-import VisxGraphVisualization from './VisxGraphVisualization';
 import '../styles/MafiaCalculatorComponent.css'; // Import the CSS file for styling
 
 // Define the structure of a node
@@ -128,15 +127,17 @@ const MafiaCalculatorComponent: React.FC = () => {
   };
 
   return (
-    <div className="App">
-      <header className="App-header">
+    <div className="mafia-calculator-container">
+      <div className="text-entry-column">
         <textarea
-            value={input}
-            onChange={handleInputChange}
-            placeholder="Enter commands here..."
-            rows={10}
-            cols={50}
+          value={input}
+          onChange={handleInputChange}
+          placeholder="Enter commands here..."
+          rows={50}
+          cols={30} // Adjusted for narrow column
         />
+      </div>
+      <div className="app-output-column">
         <div className="eliminated-players">
           <strong>Players Eliminated:</strong> {eliminatedPlayers}
         </div>
@@ -147,7 +148,7 @@ const MafiaCalculatorComponent: React.FC = () => {
         {/*{relationshipsGraph && (*/}
         {/*  <VisxGraphVisualization data={relationshipsGraph} title="Relationships Graph" />*/}
         {/*)}*/}
-      </header>
+      </div>
     </div>
   );
 };
