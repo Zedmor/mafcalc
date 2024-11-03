@@ -267,4 +267,23 @@ describe('MafiaCalculator', () => {
 
     })
 
+    test('twoSheriffsTwo', () => {
+        calculator.processSingleEvent("9cr6");
+        calculator.processSingleEvent("8cb6");
+
+        const doubleRedPlayers = calculator.getDoubleRedPlayers();
+
+        expect(Array.from(doubleRedPlayers)).toEqual([]);
+
+    })
+
+    test('Double Red player', () => {
+        calculator.processSingleEvent("9cr6");
+        calculator.processSingleEvent("8cr6");
+
+        const doubleRedPlayers = calculator.getDoubleRedPlayers();
+
+        expect(Array.from(doubleRedPlayers)).toContain(6);
+    })
+
 });
