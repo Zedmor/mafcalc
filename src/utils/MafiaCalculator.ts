@@ -109,6 +109,30 @@ export class MafiaCalculator {
         }
     }
 
+    handleVoting(eventStr: string): [number | null, string | null, number | number[] | null] {
+        const [targetStr, votersStr] = eventStr.split(":");
+        const target = parseInt(targetStr.trim(), 10);
+        // Split by any combination of spaces and commas
+        const voters = votersStr.trim().split(/[\s,]+/).map(voter => parseInt(voter, 10));
+
+        // Calculate the number of active players excluding the target
+        const activePlayers = this.players.filter(p => !this.eliminatedPlayers.has(p) && p !== target);
+        const totalActivePlayers = activePlayers.length;
+
+        // Determine if the vote is significant
+        const votersSet = new Set(voters);
+        const nonVoters = activePlayers.filter(p => !votersSet.has(p));
+
+        let actionCode = 'v'; // Default to significant vote
+
+        if (voters.length <= 1 || nonVoters.length <= 1) {
+            // Insignificant if only one player voted or only one player didn't vote
+            actionCode = 'vs';
+        }
+
+        return [target, actionCode, voters];
+    }
+
     parseEvent(eventStr: string): [number | null, string | null, number | number[] | null] {
         // Check if we are expecting a 'vel' or 'novel' command due to a tie in voting
         if (this.expectingVel) {
@@ -127,11 +151,7 @@ export class MafiaCalculator {
 
         // Handle voting notation
         if (eventStr.includes(":")) {
-            const [targetStr, votersStr] = eventStr.split(":");
-            const target = parseInt(targetStr.trim(), 10);
-            // Split by any combination of spaces and commas
-            const voters = votersStr.trim().split(/[\s,]+/).map(voter => parseInt(voter, 10));
-            return [target, "V", voters];
+         return this.handleVoting(eventStr)
         }
 
 
@@ -157,7 +177,7 @@ export class MafiaCalculator {
     applyEvent(source: number, action: string, target: number | number[] | null) {
         action = action.toLowerCase();
 
-        if (action === "v" && Array.isArray(target)) {
+        if ((action === "v" || action === "vs") && Array.isArray(target)) {
             // Handle voting
             if (!this.votingStage) {
                 this.votingStage = true;

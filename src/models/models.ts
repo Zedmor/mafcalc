@@ -40,7 +40,7 @@ export class Action {
 
 class Suspicion extends Action {
     static command = 's';
-    static breakingWeight = 0.6;
+    static breakingWeight = 0.5;
     static reverseStrength = 0.1;
     static strength = 0.2;
 }
@@ -68,9 +68,16 @@ class StrongSuspicion extends Action {
 
 class Voted extends Action {
     static command = 'v';
-    static breakingWeight = 0.8;
+    static breakingWeight = 0.85;
     static reverseStrength = 0.3;
     static strength = 0.6;
+}
+
+class VotedSoft extends Action {
+    static command = 'vs';
+    static breakingWeight = 0.4;
+    static reverseStrength = 0.15;
+    static strength = 0.3;
 }
 
 class RequestedCheck extends Action {
@@ -142,6 +149,7 @@ Action.subclasses.push(
     RednessStrong,
     StrongSuspicion,
     Voted,
+    VotedSoft,
     RequestedCheck,
     CheckedBlack,
     CheckedRed,
@@ -159,6 +167,7 @@ export {
     RednessStrong,
     StrongSuspicion,
     Voted,
+    VotedSoft,
     RequestedCheck,
     CheckedBlack,
     CheckedRed,

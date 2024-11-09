@@ -10,7 +10,7 @@ describe('MafiaCalculator', () => {
 
     test('parseEvent', () => {
         expect(calculator.parseEvent("1s7")).toEqual([1, "s", 7]);
-        expect(calculator.parseEvent("5: 3 4 8")).toEqual([5, "V", [3, 4, 8]]);
+        expect(calculator.parseEvent("5: 3 4 8")).toEqual([5, "v", [3, 4, 8]]);
     });
 
     test('initializeGraphs', () => {
@@ -75,12 +75,12 @@ describe('MafiaCalculator', () => {
 
     test('parseEventVotingSpaces', () => {
         const event = calculator.parseEvent("1: 2,3,4,6, 7");
-        expect(event).toEqual([1, "V", [2, 3, 4, 6, 7]]);
+        expect(event).toEqual([1, "v", [2, 3, 4, 6, 7]]);
     })
 
     test('calculateVoting', () => {
         const event = calculator.parseEvent("1: 2,3,4,6, 7");
-        expect(event).toEqual([1, "V", [2, 3, 4, 6, 7]]);
+        expect(event).toEqual([1, "v", [2, 3, 4, 6, 7]]);
         const source = event[0];
         const action = event[1];
         const target = event[2];
@@ -285,5 +285,95 @@ describe('MafiaCalculator', () => {
 
         expect(Array.from(doubleRedPlayers)).toContain(6);
     })
+
+    test('Insignificant vote when all players vote for target', () => {
+        const calculator = new MafiaCalculator();
+        calculator.eliminatedPlayers = new Set(); // No players are eliminated
+
+        // All active players (excluding target) vote for player 1
+        const event = calculator.handleVoting('1: 2,3,4,5,6,7,8,9,10');
+        expect(event).toEqual([1, 'vs', [2, 3, 4, 5, 6, 7, 8, 9, 10]]);
+    });
+
+    test('Significant vote when some players vote for target', () => {
+        const calculator = new MafiaCalculator();
+        calculator.eliminatedPlayers = new Set();
+
+        // A subset of players vote for player 1
+        const event = calculator.handleVoting('1: 2,3,4');
+        expect(event).toEqual([1, 'v', [2, 3, 4]]);
+    });
+
+    test('Insignificant vote when only one player votes', () => {
+        const calculator = new MafiaCalculator();
+        calculator.eliminatedPlayers = new Set();
+
+        // Only one player votes for player 1
+        const event = calculator.handleVoting('1: 2');
+        expect(event).toEqual([1, 'vs', [2]]);
+    });
+
+    test('Significant vote with half of the players voting', () => {
+        const calculator = new MafiaCalculator();
+        calculator.eliminatedPlayers = new Set();
+
+        // Half of the active players vote for player 1
+        const event = calculator.handleVoting('1: 2,3,4,5,6');
+        expect(event).toEqual([1, 'v', [2, 3, 4, 5, 6]]);
+    });
+
+    test('Insignificant vote when all but one player vote', () => {
+        const calculator = new MafiaCalculator();
+        calculator.eliminatedPlayers = new Set();
+
+        // All active players except one vote for player 1
+        const event = calculator.handleVoting('1: 2,3,4,5,6,7,8,9');
+        expect(event).toEqual([1, 'vs', [2, 3, 4, 5, 6, 7, 8, 9]]);
+    });
+
+    test('Significant vote with eliminated players considered', () => {
+        const calculator = new MafiaCalculator();
+        calculator.eliminatedPlayers = new Set([9, 10]); // Players 9 and 10 are eliminated
+
+        // Active players are 1-8; some vote for player 1
+        const event = calculator.handleVoting('1: 2,3,4');
+        expect(event).toEqual([1, 'v', [2, 3, 4]]);
+    });
+
+    test('Insignificant vote with almost all active players voting', () => {
+        const calculator = new MafiaCalculator();
+        calculator.eliminatedPlayers = new Set([9, 10]); // Players 9 and 10 are eliminated
+
+        // Active players are 1-8; all but one vote for player 1
+        const event = calculator.handleVoting('1: 2,3,4,5,6,7');
+        expect(event).toEqual([1, 'vs', [2, 3, 4, 5, 6, 7]]);
+    });
+
+    test('Significant vote after some players are eliminated', () => {
+        const calculator = new MafiaCalculator();
+        calculator.eliminatedPlayers = new Set([2, 3]); // Players 2 and 3 are eliminated
+
+        // Active players vote for player 1
+        const event = calculator.handleVoting('1: 4,5,6');
+        expect(event).toEqual([1, 'v', [4, 5, 6]]);
+    });
+
+    test('Insignificant vote when only one active player votes', () => {
+        const calculator = new MafiaCalculator();
+        calculator.eliminatedPlayers = new Set([2, 3, 4, 5, 6, 7, 8, 9]); // Many players are eliminated
+
+        // Only player 10 is active besides the target
+        const event = calculator.handleVoting('1: 10');
+        expect(event).toEqual([1, 'vs', [10]]);
+    });
+
+    test('Significant vote with multiple but not all active players voting', () => {
+        const calculator = new MafiaCalculator();
+        calculator.eliminatedPlayers = new Set([8, 9, 10]); // Players 8-10 are eliminated
+
+        // Active players are 1-7; some vote for player 1
+        const event = calculator.handleVoting('1: 2,3,4');
+        expect(event).toEqual([1, 'v', [2, 3, 4]]);
+    });
 
 });
