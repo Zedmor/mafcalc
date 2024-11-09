@@ -75,14 +75,14 @@ class Voted extends Action {
 
 class RequestedCheck extends Action {
     static command = 'rc';
-    static breakingWeight = 0.8;
+    static breakingWeight = 0.7;
     static reverseStrength = 0.1;
-    static strength = 0.5;
+    static strength = 0.3;
 }
 
 class CheckedBlack extends Action {
     static command = 'cb';
-    static breakingWeight = 0.8;
+    static breakingWeight = 0.85;
     static reverseStrength = 1;
     static strength = 1;
 }
