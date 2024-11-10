@@ -1,11 +1,47 @@
 import {combinations, MafiaCalculator} from "../src/utils/MafiaCalculator";
-import {Suspicion} from "../src/models/models";
+import {Redness, Suspicion} from "../src/models/models";
 
 describe('MafiaCalculator', () => {
     let calculator: MafiaCalculator;
 
     beforeEach(() => {
         calculator = new MafiaCalculator();
+    });
+
+    test('parseEventMultipleRedPlayers', () => {
+        expect(calculator.parseEvent("4+7890")).toEqual([4, 'r', [7, 8, 9, 10]]);
+    });
+
+    test('applyEventMultipleRedPlayers', () => {
+        calculator.applyEvent(4, 'r', [7, 8, 9, 10]);
+
+        // Verify that the relationships between source and each target have been updated
+        [7, 8, 9, 10].forEach(target => {
+            const relationshipEdge = calculator.relationshipsGraph.edges.find(edge =>
+                edge.source === 4 && edge.target === target
+            );
+            expect(relationshipEdge).toBeDefined();
+
+            // Calculate expected weight after applying Redness action
+            const rednessInstance = new Redness(4, target);
+            const expectedWeight = Math.max(0, Math.min(1, (6 / 9) * (1 - rednessInstance.getStrength())));
+            expect(relationshipEdge!.weight).toBeCloseTo(expectedWeight);
+        });
+    });
+
+    test('parseEventZeroAsTen', () => {
+        expect(calculator.parseEvent("4+0")).toEqual([4, 'r', [10]]);
+        calculator.applyEvent(4, 'r', [10]);
+
+        const relationshipEdge = calculator.relationshipsGraph.edges.find(edge =>
+            edge.source === 4 && edge.target === 10
+        );
+        expect(relationshipEdge).toBeDefined();
+
+        // Verify the weight has been updated
+        const rednessInstance = new Redness(4, 10);
+        const expectedWeight = Math.max(0, Math.min(1, (6 / 9) * (1 - rednessInstance.getStrength())));
+        expect(relationshipEdge!.weight).toBeCloseTo(expectedWeight);
     });
 
     test('parseEvent', () => {

@@ -117,7 +117,6 @@ export class MafiaCalculator {
 
         // Calculate the number of active players excluding the target
         const activePlayers = this.players.filter(p => !this.eliminatedPlayers.has(p) && p !== target);
-        const totalActivePlayers = activePlayers.length;
 
         // Determine if the vote is significant
         const votersSet = new Set(voters);
@@ -133,8 +132,34 @@ export class MafiaCalculator {
         return [target, actionCode, voters];
     }
 
+    private applySingleRedness(source: number, target: number) {
+        const relationshipEdge = this.relationshipsGraph.edges.find(edge =>
+            edge.source === source && edge.target === target
+        );
+        if (relationshipEdge) {
+            const rednessInstance = new Redness(source, target);
+            const expectedWeight = Math.max(0, Math.min(1, (6 / 9) * (1 - rednessInstance.getStrength())));
+            relationshipEdge.weight = expectedWeight;
+        }
+    }
+
+
+    private applyRednessToMultipleTargets(source: number, targets: number[]) {
+        targets.forEach(target => {
+            this.applySingleRedness(source, target);
+        });
+    }
+
+
     parseEvent(eventStr: string): [number | null, string | null, number | number[] | null] {
         // Check if we are expecting a 'vel' or 'novel' command due to a tie in voting
+
+        const multipleRedness = this.parseMultipleRednessTargets(eventStr);
+        if (multipleRedness) {
+            return multipleRedness;
+        }
+
+
         if (this.expectingVel) {
             if (eventStr === 'vel') {
                 this.eliminateBothPlayers();
@@ -151,7 +176,7 @@ export class MafiaCalculator {
 
         // Handle voting notation
         if (eventStr.includes(":")) {
-         return this.handleVoting(eventStr)
+            return this.handleVoting(eventStr)
         }
 
 
@@ -174,8 +199,29 @@ export class MafiaCalculator {
         }
     }
 
+    private parseMultipleRednessTargets(eventStr: string): [number, string, number[]] | null {
+        const match = eventStr.match(/(\d+)\+([0-9]+)/);
+        if (match) {
+            const source = parseInt(match[1], 10);
+            const targetsStr = match[2];
+            const targets = targetsStr.split('').map(char => {
+                const num = parseInt(char, 10);
+                return num === 0 ? 10 : num; // Interpret '0' as '10'
+            });
+            return [source, 'r', targets];
+        }
+        return null;
+    }
+
+
     applyEvent(source: number, action: string, target: number | number[] | null) {
         action = action.toLowerCase();
+
+        if (action === 'r' && Array.isArray(target)) {
+            this.applyRednessToMultipleTargets(source, target);
+            return;
+        }
+
 
         if ((action === "v" || action === "vs") && Array.isArray(target)) {
             // Handle voting
