@@ -611,8 +611,9 @@ export class MafiaCalculator {
             });
         });
 
-        // Sort players by cumulative probability
+        // Sort players by cumulative probability, only include non-eliminated players
         const sortedPlayers = Array.from(playerProbabilities.entries())
+            .filter(([p]) => !this.eliminatedPlayers.has(p))
             .sort((a, b) => b[1] - a[1])
             .map(([p]) => p);
 
