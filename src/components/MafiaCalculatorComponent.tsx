@@ -1,5 +1,5 @@
-import React, {useState, useEffect} from 'react';
-import {MafiaCalculator, PlayerInfo} from '../utils/MafiaCalculator';
+import React, { useState, useEffect } from 'react';
+import { MafiaCalculator, PlayerInfo } from '../utils/MafiaCalculator';
 import '../styles/MafiaCalculatorComponent.css'; // Import the CSS file for styling
 
 // Define the structure of a node
@@ -30,6 +30,7 @@ const MafiaCalculatorComponent: React.FC = () => {
     const [blackTogetherGraph, setBlackTogetherGraph] = useState<GraphData | null>(null);
     const [relationshipsGraph, setRelationshipsGraph] = useState<GraphData | null>(null);
     const [sheriffAdvisorOutput, setSheriffAdvisorOutput] = useState<{ player: number; infoGain: number }[]>([]);
+    const [mafiaPlayers, setMafiaPlayers] = useState<number[]>([]); // State to store mafia players
 
     useEffect(() => {
         const calculator = new MafiaCalculator();
@@ -48,22 +49,53 @@ const MafiaCalculatorComponent: React.FC = () => {
         // Transform graph data for visualization
         setBlackTogetherGraph(transformGraphData(calculator.blackTogetherGraph));
         setRelationshipsGraph(transformGraphData(calculator.relationshipsGraph));
-    }, [input, activePlayer]);
+    }, [input, activePlayer, mafiaPlayers]); // Added mafiaPlayers as a dependency
 
     const handleInputChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
         setInput(event.target.value);
     };
 
-    const getSortedRelations = (activePlayer: number) => {
+    const handleMafiaToggle = (playerId: number) => {
+        setMafiaPlayers((prev) => {
+            if (prev.includes(playerId)) {
+                return prev.filter((id) => id !== playerId);
+            } else {
+                if (prev.length >= 3) {
+                    // Prevent selecting more than three mafia players
+                    return prev;
+                }
+                return [...prev, playerId];
+            }
+        });
+    };
+
+    const getSortedRelations = () => {
         if (!relationshipsGraph) return null;
 
-        const relations = relationshipsGraph.links
-            .filter(link => link.target.id === activePlayer) // Only consider links where activePlayer is the target
-            .map(link => {
-                const otherPlayer = link.source.id; // The source is the other player in this directed relationship
-                return {player: otherPlayer, weight: link.weight};
-            })
-            .filter(relation => !eliminatedPlayers.includes(relation.player.toString()));
+        // Define mafias as activePlayer plus selected mafiaPlayers
+        const mafias = [activePlayer, ...mafiaPlayers].filter((p): p is number => p !== null);
+
+        if (mafias.length === 0) return null;
+
+        const relationsMap = new Map<number, number>();
+
+        relationshipsGraph.links.forEach((link) => {
+            if (mafias.includes(link.target.id)) {
+                const otherPlayer = link.source.id;
+                if (!relationsMap.has(otherPlayer)) {
+                    relationsMap.set(otherPlayer, 0);
+                }
+                relationsMap.set(otherPlayer, relationsMap.get(otherPlayer)! + link.weight);
+            }
+        });
+
+        const relations = Array.from(relationsMap.entries())
+            .filter(
+                ([player, _]) =>
+                    !eliminatedPlayers.split(', ').includes(player.toString()) &&
+                    !mafias.includes(player)
+            )
+            .map(([player, totalWeight]) => ({ player, weight: totalWeight }));
 
         relations.sort((a, b) => b.weight - a.weight);
 
@@ -77,8 +109,6 @@ const MafiaCalculatorComponent: React.FC = () => {
                 ))}
             </div>
         );
-
-
     };
 
     const transformGraphData = (
@@ -98,9 +128,8 @@ const MafiaCalculatorComponent: React.FC = () => {
             weight: edge.weight,
         }));
 
-        return {nodes: graphData.nodes, links};
+        return { nodes: graphData.nodes, links };
     };
-
 
     const generateOutput = (calculator: MafiaCalculator, events: string[]): JSX.Element => {
         const playerIds = [9, 10, 1, 2, 8, null, null, 3, 7, 6, 5, 4];
@@ -114,19 +143,28 @@ const MafiaCalculatorComponent: React.FC = () => {
                     {playerInfo.map((info, index) => (
                         <div
                             key={index}
-                            className={`player-info-cell ${activePlayer === playerIds[index] ? 'active-player' : ''}`}
+                            className={`player-info-cell ${activePlayer === playerIds[index] ? 'active-player' : ''} ${mafiaPlayers.includes(playerIds[index] || -1) ? 'mafia-player' : ''}`}
                             onClick={() => setActivePlayer(playerIds[index])}
                         >
                             {info ? (
-                                formatPlayerInfo(info)
+                                <div>
+                                    <input
+                                        type="checkbox"
+                                        checked={mafiaPlayers.includes(playerIds[index] || -1)}
+                                        onChange={(e) => {
+                                            e.stopPropagation();
+                                            handleMafiaToggle(playerIds[index] || -1);
+                                        }}
+                                    />
+                                    {formatPlayerInfo(info)}
+                                </div>
                             ) : index === 5 ? (
                                 formatSheriffAdvisorOutput(sheriffAdvisorOutput)
                             ) : index === 6 && activePlayer !== null ? (
-                                getSortedRelations(activePlayer)
+                                getSortedRelations()
                             ) : (
                                 ''
                             )}
-
                         </div>
                     ))}
                 </div>
@@ -169,7 +207,7 @@ const MafiaCalculatorComponent: React.FC = () => {
         return (
             <div>
                 <strong>Sheriff Advisor:</strong>
-                {sheriffAdvisorOutput.map(({player, infoGain}, index) => (
+                {sheriffAdvisorOutput.map(({ player, infoGain }, index) => (
                     <div key={index}>
                         Player {player}: {infoGain.toFixed(2)} bits
                     </div>
@@ -181,13 +219,13 @@ const MafiaCalculatorComponent: React.FC = () => {
     return (
         <div className="mafia-calculator-container">
             <div className="text-entry-column">
-        <textarea
-            value={input}
-            onChange={handleInputChange}
-            placeholder="Enter commands here..."
-            rows={50}
-            cols={30} // Adjusted for narrow column
-        />
+                <textarea
+                    value={input}
+                    onChange={handleInputChange}
+                    placeholder="Enter commands here..."
+                    rows={50}
+                    cols={30} // Adjusted for narrow column
+                />
             </div>
             <div className="app-output-column">
                 <div className="eliminated-players">

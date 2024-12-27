@@ -11,12 +11,22 @@
   background-color: lightgreen;
 }
 
+.player-info-cell.mafia-player {
+  background-color: #a6a6a6; /* Darker background for mafia players */
+}
+
 .player-info-cell {
   border: 1px solid #ccc;
   padding: 10px;
   background-color: #f0f0f0; /* Light gray background for better contrast */
   color: #333; /* Dark text color for readability */
   font-size: 18px; /* Smaller font size for better fit */
+  display: flex;
+  align-items: center;
+}
+
+.player-info-cell input[type="checkbox"] {
+  margin-right: 10px;
 }
 
 .eliminated-players {
@@ -77,6 +87,7 @@ textarea {
   font-size: 14px; /* Slightly larger font for headings */
   color: #fff; /* White text color for headings */
 }
+
 .mafia-calculator-container {
   display: flex;
 }
