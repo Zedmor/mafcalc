@@ -89,10 +89,17 @@ const MafiaCalculatorComponent: React.FC = () => {
             }
         });
 
+        const eliminatedSet = new Set(
+            eliminatedPlayers
+                .split(', ')
+                .filter((p) => p.trim() !== '')
+                .map((p) => parseInt(p, 10))
+        );
+
         const relations = Array.from(relationsMap.entries())
             .filter(
                 ([player, _]) =>
-                    !eliminatedPlayers.split(', ').includes(player.toString()) &&
+                    !eliminatedSet.has(player) &&
                     !mafias.includes(player)
             )
             .map(([player, totalWeight]) => ({ player, weight: totalWeight }));
